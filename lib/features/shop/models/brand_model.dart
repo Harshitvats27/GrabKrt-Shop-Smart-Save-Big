@@ -31,31 +31,30 @@ class BrandModel{
   }
 
 
-  factory BrandModel.fromJson(Map<String, dynamic> document){
+  factory BrandModel.fromJson(Map<String, dynamic> document) {
     final data = document;
-    if(data.isEmpty) return BrandModel.empty();
+    if (data.isEmpty) return BrandModel.empty();
     return BrandModel(
-        id: data['id'],
-        image: data['image'],
-        name: data['name'],
-        isFeatured: data['isFeatured'],
-        productsCount: data['productCount']
+      id: data['id']?.toString() ?? '', // Safe string
+      image: data['image']?.toString() ?? '',
+      name: data['name']?.toString() ?? '',
+      isFeatured: data['isFeatured'] ?? false, // Default false agar null ho
+      productsCount: int.tryParse((data['productCount'] ?? 0).toString()) ?? 0, // Safe int conversion
     );
   }
 
-  factory BrandModel.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> document){
-    if(document.data() != null){
+  factory BrandModel.fromSnapshot(DocumentSnapshot<Map<String, dynamic>> document) {
+    if (document.data() != null) {
       Map<String, dynamic> data = document.data()!;
       return BrandModel(
-          id: data['id'],
-          image: data['image'],
-          name: data['name'],
-          isFeatured: data['isFeatured'],
-          productsCount: data['productCount']
+        id: document.id, // Hamesha document.id use karein
+        image: data['image']?.toString() ?? '',
+        name: data['name']?.toString() ?? '',
+        isFeatured: data['isFeatured'] ?? false,
+        productsCount: int.tryParse((data['productCount'] ?? 0).toString()) ?? 0,
       );
-    }else{
+    } else {
       return BrandModel.empty();
     }
-
   }
 }

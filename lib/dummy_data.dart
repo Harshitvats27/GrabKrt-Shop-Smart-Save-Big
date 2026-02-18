@@ -5,9 +5,7 @@ import 'package:e_commerce_application/utils/constants/enums.dart';
 import 'package:e_commerce_application/utils/constants/text.dart';
 
 import 'data/repositories/brand/brand_category_model.dart';
-
 import 'features/shop/models/banners_models.dart';
-
 import 'features/shop/models/brand_model.dart';
 import 'features/shop/models/category_model.dart';
 import 'features/shop/models/product_attribute_model.dart';
@@ -16,10 +14,8 @@ import 'features/shop/models/product_model.dart';
 import 'features/shop/models/product_variation_model.dart';
 import 'features/shop/models/promo_code_model.dart';
 import 'utils/constants/images.dart';
-
 class UDummyData {
   /// List of all Banners
-
   static final List<BannerModel> banner = [
     BannerModel(imageUrl: UImages.homeBanner1, targetScreen: URoutes.order, active: true),
     BannerModel(imageUrl: UImages.homeBanner2, targetScreen: URoutes.cart, active: true),

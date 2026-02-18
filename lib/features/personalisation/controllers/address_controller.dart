@@ -1,17 +1,16 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:e_commerce_application/common/data/repositories/authentication_repository.dart';
-import 'package:e_commerce_application/common/widgets/loaders/circular_loader.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:e_commerce_application/common/widgets/loaders/circular_loader.dart';
+import 'package:e_commerce_application/common/widgets/text/section_heading.dart';
+import 'package:e_commerce_application/utils/constants/sizes.dart';
+import 'package:e_commerce_application/utils/helpers/cloud_helper_functions.dart';
+import 'package:e_commerce_application/utils/helpers/network_manager.dart';
+import 'package:e_commerce_application/utils/pop_ups/full_screen_loader.dart';
+import 'package:e_commerce_application/utils/pop_ups/snackbar_helpers.dart';
 
-import '../../../common/widgets/text/section_heading.dart';
 import '../../../data/repositories/address/address_repository.dart';
-import '../../../utils/constants/sizes.dart';
-import '../../../utils/helpers/cloud_helper_functions.dart';
-import '../../../utils/helpers/network_manager.dart';
-import '../../../utils/pop_ups/full_screen_loader.dart';
-import '../../../utils/pop_ups/snackbar_helpers.dart';
 import '../../shop/screens/personalisation/screens/address/widgets/single_address.dart';
 import '../models/address_model.dart';
 
@@ -21,7 +20,7 @@ class AddressController extends GetxController {
   final _repository = Get.put(AddressRepository());
   Rx<AddressModel> selectedAddress = AddressModel.empty().obs;
   RxBool refreshData = false.obs;
-
+  GoogleMapController? googleMapController;
   /// Text Controllers
   final name = TextEditingController();
   final phoneNumber = TextEditingController();
@@ -31,28 +30,83 @@ class AddressController extends GetxController {
   final state = TextEditingController();
   final country = TextEditingController();
 
-  /// Form Key
+  /// Location & Type Controllers
+  final latitude = TextEditingController();
+  final longitude = TextEditingController();
+  final selectedAddressType = 'Home'.obs;
+  @override
+  void onInit() {
+    super.onInit();
+    getCurrentLocation();
+  }
   final GlobalKey<FormState> addressFormKey = GlobalKey<FormState>();
 
+  /// Fetch all addresses from Firebase
+  Future<List<AddressModel>> getAllAddresses() async {
+    try {
+      List<AddressModel> addresses = await _repository.fetchUserAddresses();
+      selectedAddress.value = addresses.firstWhere(
+            (element) => element.selectedAddress,
+        orElse: () => AddressModel.empty(),
+      );
+      return addresses;
+    } catch (e) {
+      USnackBarHelpers.errorSnackBar(title: 'Error', message: e.toString());
+      return [];
+    }
+  }
+
+  /// Update Coordinates from Map Tap or GPS
+  void updateCoordinates(LatLng position) {
+    latitude.text = position.latitude.toString();
+    longitude.text = position.longitude.toString();
+    update();
+  }
+
+  /// Fetch Current GPS Location
+  Future<void> getCurrentLocation() async {
+    try {
+      UFullScreenLoader.openLoadingDialog('Fetching Current Location...');
+      LocationPermission permission = await Geolocator.requestPermission();
+
+      if (permission == LocationPermission.always || permission == LocationPermission.whileInUse) {
+        Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        LatLng currentLocation = LatLng(position.latitude, position.longitude);
+
+        updateCoordinates(currentLocation);
+
+        // NAYA CODE: Map ke camera ko automatically current location par animate karein
+        if (googleMapController != null) {
+          googleMapController!.animateCamera(
+            CameraUpdate.newCameraPosition(
+              CameraPosition(target: currentLocation, zoom: 16),
+            ),
+          );
+        }
+      }
+      UFullScreenLoader.stopLoading();
+    } catch (e) {
+      UFullScreenLoader.stopLoading();
+      USnackBarHelpers.errorSnackBar(title: 'Location Error', message: e.toString());
+    }
+  }
+
+  /// Save New Address
   Future<void> addNewAddress() async {
     try {
-      // Start Loading
       UFullScreenLoader.openLoadingDialog('Storing Address...');
 
-      // Check Internet Connectivity
       final isConnected = await NetworkManager.instance.isConnected();
       if (!isConnected) {
         UFullScreenLoader.stopLoading();
         return;
       }
 
-      // Form Validation
       if (!addressFormKey.currentState!.validate()) {
         UFullScreenLoader.stopLoading();
         return;
       }
 
-      // Create Address Model
       AddressModel address = AddressModel(
         id: '',
         name: name.text.trim(),
@@ -64,24 +118,20 @@ class AddressController extends GetxController {
         country: country.text.trim(),
         selectedAddress: true,
         dateTime: DateTime.now(),
+        latitude: double.tryParse(latitude.text.trim()) ?? 0.0,
+        longitude: double.tryParse(longitude.text.trim()) ?? 0.0,
+        addressType: selectedAddressType.value,
       );
 
       String addressId = await _repository.addAddress(address);
       address.id = addressId;
-      // update selected address
-      selectAddress(address);
+      await selectAddress(address);
 
-      // Stop Loading
       UFullScreenLoader.stopLoading();
-      // Reset Form Fields
       resetFormFields();
       Navigator.pop(Get.context!);
       Navigator.pop(Get.context!);
-      // Success Message
-      USnackBarHelpers.successSnackBar(
-        title: 'Success',
-        message: 'Address saved successfully',
-      );
+      USnackBarHelpers.successSnackBar(title: 'Success', message: 'Address saved successfully');
       refreshData.toggle();
     } catch (e) {
       UFullScreenLoader.stopLoading();
@@ -89,34 +139,7 @@ class AddressController extends GetxController {
     }
   }
 
-  Future<List<AddressModel>> getAllAddresses() async {
-    try {
-      List<AddressModel> addresses = await _repository.fetchUserAddresses();
-      selectedAddress.value = addresses.firstWhere(
-        (element) => element.selectedAddress,
-        orElse: () => AddressModel.empty(),
-      );
-      return addresses;
-    } catch (e) {
-      USnackBarHelpers.errorSnackBar(title: 'Error', message: e.toString());
-      return [];
-    }
-  }
-
-  void resetFormFields() {
-    name.text = '';
-    phoneNumber.text = '';
-    street.text = '';
-    postalCode.text = '';
-    city.text = '';
-    state.text = '';
-    country.text = '';
-
-    addressFormKey.currentState?.reset();
-
-    update(); // 🔥 VERY IMPORTANT (if using GetBuilder)
-  }
-
+  /// Select a specific address and update in DB
   Future<void> selectAddress(AddressModel newSelectedAddress) async {
     try {
       Get.defaultDialog(
@@ -124,8 +147,9 @@ class AddressController extends GetxController {
         onWillPop: () async => false,
         barrierDismissible: false,
         backgroundColor: Colors.transparent,
-        content: UCircularLoader(),
+        content: const UCircularLoader(),
       );
+
       if (selectedAddress.value.id.isNotEmpty) {
         await _repository.updateSelectedField(selectedAddress.value.id, false);
       }
@@ -140,41 +164,33 @@ class AddressController extends GetxController {
     }
   }
 
+  /// [FIX] Missing Method for Checkout Address Change
   Future<void> selectNewAddressBottomSheet(BuildContext context) {
     return showModalBottomSheet(
       context: context,
       builder: (context) => SingleChildScrollView(
         child: Container(
-          padding: EdgeInsets.all(USizes.lg),
+          padding: const EdgeInsets.all(USizes.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              /// Heading
               USectionHeading(title: 'Select Address', showActionButtton: false),
-
-              SizedBox(height: USizes.spaceBtwItems),
-
-              /// Address List
+              const SizedBox(height: USizes.spaceBtwItems),
               FutureBuilder(
                 future: getAllAddresses(),
                 builder: (context, snapshot) {
-                  /// Handle Error, Loading, Empty States
-                  final widget = UCloudHelperFunctions.checkMultiRecordState(
-                    snapshot: snapshot,
-                  );
-
+                  final widget = UCloudHelperFunctions.checkMultiRecordState(snapshot: snapshot);
                   if (widget != null) return widget;
 
                   return ListView.separated(
-                    physics: NeverScrollableScrollPhysics(),
+                    physics: const NeverScrollableScrollPhysics(),
                     shrinkWrap: true,
                     itemCount: snapshot.data!.length,
-                    separatorBuilder: (_, __) =>
-                        SizedBox(height: USizes.spaceBtwItems),
+                    separatorBuilder: (_, __) => const SizedBox(height: USizes.spaceBtwItems),
                     itemBuilder: (context, index) => USingleAddress(
                       addresses: snapshot.data![index],
-                      onTap: () {
-                        selectedAddress(snapshot.data![index]);
+                      onTap: () async {
+                        await selectAddress(snapshot.data![index]);
                         Get.back();
                       },
                     ),
@@ -187,4 +203,26 @@ class AddressController extends GetxController {
       ),
     );
   }
+
+  void resetFormFields() {
+    name.clear();
+    phoneNumber.clear();
+    street.clear();
+    postalCode.clear();
+    city.clear();
+    state.clear();
+    country.clear();
+    latitude.clear();
+    longitude.clear();
+    selectedAddressType.value = 'Home';
+    addressFormKey.currentState?.reset();
+    update();
+  }
+// Controller ke andar is method ko sahi kijiye
+  void onCameraMove(CameraPosition position) {
+    latitude.text = position.target.latitude.toString();
+    longitude.text = position.target.longitude.toString();
+    update();
+  }
+
 }

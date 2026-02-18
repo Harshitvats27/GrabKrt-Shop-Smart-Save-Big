@@ -12,14 +12,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-
 import '../../../../common/layout/grid_layout.dart';
 import '../../../../common/style/shadow.dart';
 import '../../../../common/widgets/appbar/appbar.dart';
 import '../../../../common/widgets/custom_shape/circular_contaner.dart';
 import '../../../../common/widgets/images/rounded_image.dart';
 import '../../../../common/widgets/products/cart/cart_counter_icon.dart';
-
 import '../../../../common/widgets/products/product_cards/product_cards_vertical.dart';
 import '../../../../common/widgets/text/section_heading.dart';
 import '../../../../common/widgets/textfields/search_bar.dart';
@@ -29,7 +27,6 @@ import '../../../../utils/helpers/helper_function.dart';
 import '../../controllers/controller/product_controller.dart';
 import '../../controllers/home/home_controller.dart';
 import '../../models/product_model.dart';
-
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
@@ -59,7 +56,12 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
 
-                USearchBar(),
+                Positioned(
+                  bottom: 0,
+                  left: USizes.defaultSpace,
+                  right: USizes.defaultSpace,
+                  child: USearchBar(),
+                ),
               ],
             ),
             SizedBox(height: USizes.defaultSpace),

@@ -29,20 +29,18 @@ class CategoryModel {
 
   // map json oriented document snapshot from firebase to user model
   factory CategoryModel.fromSnapshot(
-    DocumentSnapshot<Map<String, dynamic>> document,
-  ) {
-    if (document.data() != null) {
-      final data = document.data()!;
-      return CategoryModel(
-        id: document.id,
-        name: data['name'] ?? '',
-        image: data['image'] ?? '',
-        parentId: data['parentId'] ?? '',
-        isFeatured: data['isFeatured'] ?? false,
-      );
-    } else {
-      return CategoryModel.empty();
-    }
+      DocumentSnapshot<Map<String, dynamic>> document) {
+    final data = document.data();
+    if (data == null) return CategoryModel.empty();
+
+    return CategoryModel(
+      id: document.id,
+      name: data['name']?.toString() ?? '',
+      image: data['image'] ?? '',
+      // Force convert whatever is in parentId to a String, fallback to empty string
+      parentId: (data['parentId'] == null) ? '' : data['parentId'].toString(),
+      isFeatured: data['isFeatured'] ?? false,
+    );
   }
 }
 // import 'package:cloud_firestore/cloud_firestore.dart';

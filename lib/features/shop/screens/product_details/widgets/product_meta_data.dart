@@ -1,6 +1,7 @@
 import 'package:e_commerce_application/features/shop/models/product_model.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 
 import '../../../../../common/style/padding.dart';
 import '../../../../../common/widgets/custom_shape/rounded_container.dart';
@@ -58,9 +59,24 @@ class UProductMetaData extends StatelessWidget {
               ),
             ),
               SizedBox(width: USizes.spaceBtwItems),],
+            Obx(() {
+              final v = controller.selectedVariation.value;
 
-            UProductPriceText(price: controller.getProductPrices(product), isLarge: true),
-            Spacer(),
+              print("UI Rebuild - Selected Variation: $v");
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  Text("Selected: ${v?.price ?? "NONE"}"),
+
+                  UProductPriceText(
+                    price: controller.getProductPrices(product),
+                    isLarge: true,
+                  ),
+                ],
+              );
+            }),Spacer(),
             // shgare button
             IconButton(onPressed: () {}, icon: Icon(Icons.share)),
           ],

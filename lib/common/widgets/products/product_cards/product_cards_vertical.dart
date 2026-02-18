@@ -35,6 +35,7 @@ class UProductcardVertical extends StatelessWidget {
     final dark = UHelperfunctions.isDarkTheme(context);
     final controller=ProductController.instance;;
     String? salePercentage=controller.calculateSalePercentage(productModel.price, productModel.salePrice);
+
     return GestureDetector(
       onTap: () => Get.to(() => ProductDetailsScreen(product: productModel,)),
       child: Container(
@@ -62,6 +63,7 @@ class UProductcardVertical extends StatelessWidget {
                   if(salePercentage!=null)
                     Positioned(
                       top: 12.0,
+                      left: 12,
                       child: URoundedContainer(
                         radius: USizes.sm,
                         backgroundColor: UColors.yellow.withValues(alpha: 0.8),
@@ -84,7 +86,7 @@ class UProductcardVertical extends StatelessWidget {
                   Positioned(
                     right: 0,
                     top: 0,
-                    child: UFavouriteIcon(productId: '',),
+                    child: UFavouriteIcon(productId: productModel.id,),
                   ),
                 ],
               ),
@@ -107,14 +109,24 @@ class UProductcardVertical extends StatelessWidget {
             ),
             Spacer(),
 
-            // product price
+            // Product Price Row
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: USizes.sm),
-                  child: UProductPriceText(price: controller.getProductPrices(productModel), isLarge: true),
+                // Expanded use kiya taaki price range ko maximum available space mile
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: USizes.sm),
+                    child: UProductPriceText(
+                      // Yahan hum manual style bhej rahe hain font size chota karne ke liye
+                      price: controller.getProductPrices(productModel),
+                      isLarge: false, // Large ko false kar diya taaki size default chota rahe
+                      lineThrough: false,
+                    ),
+                  ),
                 ),
+
+                // Add to cart button apni jagah fixed rahega
                 ProductAddToCartButton(product: productModel),
               ],
             ),

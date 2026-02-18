@@ -23,23 +23,36 @@ class UCartItems extends StatelessWidget {
             SizedBox(height: USizes.spaceBtwSections),
         itemCount: controller.cartItems.length,
         itemBuilder: (context, index) {
-           final cartItem = controller.cartItems[index];
+          final cartItem = controller.cartItems[index];
           return Column(
             children: [
               UCartItem(cartItem: cartItem),
-              if (showAddRemoveButtons) SizedBox(height: USizes.spaceBtwItems),
+              if (showAddRemoveButtons) const SizedBox(height: USizes.spaceBtwItems),
               if (showAddRemoveButtons)
                 Row(
+                  // 1. Space manage karne ke liye mainAxisAlignment use karein
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    SizedBox(width: 70),
-                    // price and counter
-                    UProductQuantityandRemove(
-                      quantity: cartItem.quantity,
-                      add: () => controller.addOneToCart(cartItem),
-                      remove: ()=>controller.removeOneFromCart(cartItem),
+                    Row(
+                      children: [
+                        // Cart Item image ke niche align karne ke liye width thodi kam kar sakte hain
+                        const SizedBox(width: 70),
+
+                        // Add/Remove Buttons
+                        UProductQuantityandRemove(
+                          quantity: cartItem.quantity,
+                          add: () => controller.addOneToCart(cartItem),
+                          remove: () => controller.removeOneFromCart(cartItem),
+                        ),
+                      ],
                     ),
-                    Spacer(),
-                    UProductPriceText(price:(cartItem.price*cartItem.quantity).toStringAsFixed(0)),
+
+                    // 2. Price ko Flexible mein wrap karein taaki overflow na ho
+                    Flexible(
+                      child: UProductPriceText(
+                        price: (cartItem.price * cartItem.quantity).toStringAsFixed(0),
+                      ),
+                    ),
                   ],
                 ),
             ],

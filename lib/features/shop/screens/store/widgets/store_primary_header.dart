@@ -58,10 +58,9 @@ class UStorePrimaryHeader extends StatelessWidget {
             ),
           ),
 
-          const Positioned(
-            bottom: 0,
-            left: 16,
-            right: 16,
+          // ✅ FIX
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: USearchBar(),
           ),
         ],

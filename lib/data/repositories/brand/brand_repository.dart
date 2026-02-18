@@ -52,7 +52,9 @@ class BrandRepository extends GetxController {
     } on PlatformException catch (e) {
       throw UPlatformException(e.code).message;
     } catch (e) {
-      throw 'Something went wrong. Please try again';
+      print("DEBUG: Brand Fetch Error -> $e");
+      throw 'Error: $e';
+      // throw 'Something went wrong. Please try again';
     }
   }
 
@@ -74,7 +76,7 @@ class BrandRepository extends GetxController {
       List<String> brandIds = brandCategories
           .map((brandCategory) => brandCategory.brandId)
           .toList();
-
+      if (brandIds.isEmpty) return [];
       // Query to get brands based on brandIds
       final brandsQuery = await _db
           .collection(UKeys.brandsCollection)
@@ -95,7 +97,9 @@ class BrandRepository extends GetxController {
     } on PlatformException catch (e) {
       throw UPlatformException(e.code).message;
     } catch (e) {
-      throw 'Something went wrong. Please try again';
+      // throw 'Something went wrong. Please try again';
+      print("DEBUG: Brand Fetch Error -> $e");
+      throw 'Error: $e';
     }
   }
 }

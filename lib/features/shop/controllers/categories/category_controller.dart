@@ -43,6 +43,7 @@ class CategoryController extends GetxController {
         ),
       );
     } catch (e) {
+      print("🔥 ASLI ERROR YAHAN HAI: $e");
       USnackBarHelpers.errorSnackBar(title: 'Error', message: e.toString());
     }finally {isLoading.value = false;}
   }
@@ -56,7 +57,6 @@ class CategoryController extends GetxController {
       USnackBarHelpers.errorSnackBar(title: 'Error', message: e.toString());
       return [];
     }
-
 
   }
 

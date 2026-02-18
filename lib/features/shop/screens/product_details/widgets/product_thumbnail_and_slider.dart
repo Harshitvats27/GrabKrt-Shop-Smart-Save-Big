@@ -95,7 +95,7 @@ class UProductThumbnailandSlider extends StatelessWidget {
           // app bar back arrow and favourite button
           UAppBar(
             showBackArrow: true,
-            actions: [UFavouriteIcon(productId: '',)],
+            actions: [UFavouriteIcon(productId: product.id,)],
           ),
         ],
       ),

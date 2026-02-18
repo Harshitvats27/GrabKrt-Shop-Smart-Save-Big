@@ -59,17 +59,30 @@ class ProductDetailsScreen extends StatelessWidget {
 
 
                   // Description
-                  USectionHeading(title: 'Description', showActionButtton: false),
-                  SizedBox(height: USizes.spaceBtwItems),
-                  ReadMoreText(
-                    product.description ??'',
-                      trimLines: 2,
-                      trimMode: TrimMode.Line,
-                      trimCollapsedText: 'Show More',
-                      trimExpandedText: 'Less',
-                      moreStyle: TextStyle(fontSize: 14.0,fontWeight: FontWeight.w800),
-                      lessStyle: TextStyle(fontSize: 14.0,fontWeight: FontWeight.w800),
+                  const USectionHeading(title: 'Description', showActionButtton: false),
+                  const SizedBox(height: USizes.spaceBtwItems),
 
+                  ReadMoreText(
+                    product.description ?? 'No description available', // Fallback text
+                    trimLines: 2,
+                    trimMode: TrimMode.Line,
+                    trimCollapsedText: ' Show More',
+                    trimExpandedText: ' Less',
+                    // Use Theme color instead of hardcoded black
+                    style: TextStyle(
+                      color: dark ? Colors.white : Colors.black,
+                      fontSize: 14,
+                    ),
+                    moreStyle: const TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.blue
+                    ),
+                    lessStyle: const TextStyle(
+                        fontSize: 14.0,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.blue
+                    ),
                   ),
                   SizedBox(height: USizes.spaceBtwSections),
 

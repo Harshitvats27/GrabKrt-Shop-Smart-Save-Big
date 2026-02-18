@@ -141,6 +141,44 @@ class ProductModel {
   //         : null,
   //   );
   // }
+
+
+  //
+  // factory ProductModel.fromSnapshot(
+  //     DocumentSnapshot<Map<String, dynamic>> document) {
+  //
+  //   final data = document.data();
+  //   if (data == null) return ProductModel.empty();
+  //
+  //   return ProductModel(
+  //     id: document.id,
+  //     title: data['title'] ?? '',
+  //     stock: (data['stock'] ?? 0).toInt(),
+  //     description: data['description'] ?? '',
+  //     price: double.parse((data['price'] ?? 0).toString()),
+  //     thumbnail: data['thumbnail'] ?? '',
+  //     productType: data['productType'] ?? '',
+  //     salePrice: double.parse((data['salePrice'] ?? 0).toString()),
+  //     brand: data['brand'] is Map<String, dynamic>
+  //         ? BrandModel.fromJson(data['brand'])
+  //         : null,
+  //     // ✅ ADD IT HERE ⬇️
+  //     productVariations: data['productVariations'] is List
+  //         ? (data['productVariations'] as List)
+  //         .where((e) => e is Map) // ✅ invalid hata de
+  //         .map((e) => ProductVariationModel.fromJson(
+  //       Map<String, dynamic>.from(e),
+  //     ))
+  //         .toList()
+  //         : [],
+  //     // keep other fields as they are
+  //     images: data['images'] is List
+  //         ? List<String>.from(data['images'])
+  //         : [],
+  //
+  //     isFeatured: data['isFeatured'] ?? false,
+  //   );
+  // }
   factory ProductModel.fromSnapshot(
       DocumentSnapshot<Map<String, dynamic>> document) {
 
@@ -149,38 +187,50 @@ class ProductModel {
 
     return ProductModel(
       id: document.id,
+      sku: data['sku'], // Ensure SKU is mapped
       title: data['title'] ?? '',
-      stock: data['stock'] ?? 0,
+      stock: int.tryParse((data['stock'] ?? 0).toString()) ?? 0, // Safer conversion
+      description: data['description'] ?? '',
       price: double.parse((data['price'] ?? 0).toString()),
       thumbnail: data['thumbnail'] ?? '',
       productType: data['productType'] ?? '',
+      salePrice: double.parse((data['salePrice'] ?? 0).toString()),
+      categoryId: data['categoryId'] ?? '',
 
-      // ✅ ADD IT HERE ⬇️
-      productVariations: data['productVariations'] is List
-          ? (data['productVariations'] as List)
-          .map((e) => ProductVariationModel.fromJson(
-        Map<String, dynamic>.from(e),
-      ))
+      brand: data['brand'] != null
+          ? BrandModel.fromJson(data['brand'])
+          : null,
+
+      // ✅ ADD ATTRIBUTES HERE (Crucial to prevent your current crash)
+      productAttributes: data['productAttributes'] is List
+          ? (data['productAttributes'] as List)
+          .map((e) => ProductAttributeModel.fromJson(Map<String, dynamic>.from(e)))
           .toList()
           : [],
 
-      // keep other fields as they are
-      images: data['images'] is List
-          ? List<String>.from(data['images'])
+      // ✅ YOUR VARIATION LOGIC (Corrected for type safety)
+      productVariations: data['productVariations'] is List
+          ? (data['productVariations'] as List)
+          .map((e) => ProductVariationModel.fromJson(Map<String, dynamic>.from(e)))
+          .toList()
           : [],
 
+      images: data['images'] is List ? List<String>.from(data['images']) : [],
       isFeatured: data['isFeatured'] ?? false,
     );
   }
-
   factory ProductModel.fromQuerySnapshot(
       QueryDocumentSnapshot<Object?> document) {
     final data = document.data() as Map<String, dynamic>;
+    // ✅ DEBUG YAHAN DAAL
+    print("PRODUCT ID: ${document.id}");
+    print("RAW VARIATIONS: ${data['productVariations']}");
+    print("TYPE: ${data['productVariations'].runtimeType}");
 
     return ProductModel(
       id: document.id,
       title: data['title'] ?? '',
-      stock: data['stock'] ?? 0,
+      stock: (data['stock'] ?? 0).toInt(),
       price: double.parse((data['price'] ?? 0).toString()),
       thumbnail: (data['thumbnail'] != null && data['thumbnail'].toString().isNotEmpty)
           ? data['thumbnail']
@@ -208,9 +258,11 @@ class ProductModel {
           .toList()
           : [],
 
-      productVariations: data['productVariations'] != null
-          ? (data['productVariations'] as List<dynamic>)
-          .map((e) => ProductVariationModel.fromJson(e))
+      productVariations: data['productVariations'] is List
+          ? (data['productVariations'] as List)
+          .map((e) => ProductVariationModel.fromJson(
+        Map<String, dynamic>.from(e),
+      ))
           .toList()
           : [],
 

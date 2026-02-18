@@ -65,7 +65,7 @@ class ProductVariationModel{
       description: document['description'] ?? '',
       price: double.parse((document['price'] ?? 0).toString()),
       salePrice: double.parse((document['salePrice'] ?? 0).toString()),
-      stock: document['stock'] ?? 0,
+      stock: (document['stock'] ?? 0).toInt(),
 
       // ✅ SAFE FIX
       attributeValues: document['attributeValues'] != null

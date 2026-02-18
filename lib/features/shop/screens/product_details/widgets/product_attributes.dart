@@ -25,119 +25,125 @@ class UProductAttributes extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = UHelperfunctions.isDarkTheme(context);
     final controller = Get.put(VariationController());
+
     return Obx(
-        ()=> Column(
-        children: [
-          // selected attributes prices and
-          if(controller.selectedVariation.value.id.isNotEmpty)
-          URoundedContainer(
-            padding: EdgeInsets.all(USizes.sm),
-            backgroundColor: dark ? UColors.darkGrey : UColors.grey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // title prices and stock
-                Row(
-                  children: [
-                    // variation heading
-                    USectionHeading(
-                      showActionButtton: false,
-                      title: 'Variations',
-                    ),
-                    SizedBox(width: USizes.spaceBtwItems),
-                    Column(
-                      children: [
-                        Row(
-                          children: [
-                            UProductTitleText(title: 'Price', smallSize: true),
-                            SizedBox(width: USizes.spaceBtwItems),
-                            if(controller.selectedVariation.value.salePrice>0)
-                            Text(
-                              '${UTexts.currency}#${controller.selectedVariation.value.salePrice.toStringAsFixed(0)}',
-                              style: Theme.of(context).textTheme.titleSmall!
-                                  .apply(decoration: TextDecoration.lineThrough),
-                            ),
-                            SizedBox(width: USizes.spaceBtwItems),
-                            UProductPriceText(price: controller.getVariationPrice()),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            UProductTitleText(title: 'Stock', smallSize: true),
-                            SizedBox(width: USizes.spaceBtwItems),
-                            Text(
-                              controller.variationStockStatus.value,
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                // attribute descriptioon
-                UProductTitleText(
-                  title: controller.selectedVariation.value.description??'',
-                  smallSize: true,
-                  maxLines: 4,
-                ),
-                SizedBox(height: USizes.spaceBtwItems),
-              ],
-            ),
-          ),
-          SizedBox(height: USizes.spaceBtwItems),
+          () =>
           Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: product.productAttributes!.map((attribute) {
-              return Column(
+            children: [
+              // 1. Selected Variation Price & Description Frame
+              if (controller.selectedVariation.value.id.isNotEmpty)
+                URoundedContainer(
+                  padding: const EdgeInsets.all(USizes.sm),
+                  backgroundColor: dark ? UColors.darkGrey : UColors.grey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const USectionHeading(
+                              title: 'Variations', showActionButtton: false),
+                          const SizedBox(width: USizes.spaceBtwItems),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  const UProductTitleText(
+                                      title: 'Price: ', smallSize: true),
+                                  if (controller.selectedVariation.value
+                                      .salePrice > 0)
+                                    Text(
+                                      '${UTexts.currency}${controller
+                                          .selectedVariation.value.price}',
+                                      style: Theme
+                                          .of(context)
+                                          .textTheme
+                                          .titleSmall!
+                                          .apply(decoration: TextDecoration
+                                          .lineThrough),
+                                    ),
+                                  const SizedBox(width: USizes.spaceBtwItems),
+                                  UProductPriceText(
+                                      price: controller.getVariationPrice()),
+                                ],
+                              ),
+                              Row(
+                                children: [
+                                  const UProductTitleText(
+                                      title: 'Stock: ', smallSize: true),
+                                  Text(
+                                    controller.variationStockStatus.value,
+                                    style: Theme
+                                        .of(context)
+                                        .textTheme
+                                        .titleMedium,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      // Variation Description
+                      UProductTitleText(
+                        title: controller.selectedVariation.value.description ??
+                            '',
+                        smallSize: true,
+                        maxLines: 4,
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: USizes.spaceBtwItems),
+
+              // 2. Attributes (Colors, Sizes, etc.)
+              // We use ?? [] to ensure that if productAttributes is null, it doesn't crash
+              Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  USectionHeading(
-                    title: attribute.name ?? '',
-                    showActionButtton: false,
-                  ),
-                  SizedBox(height: USizes.spaceBtwItems / 2),
+                children: (product.productAttributes ?? []).map((attribute) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      USectionHeading(title: attribute.name ?? '',
+                          showActionButtton: false),
+                      const SizedBox(height: USizes.spaceBtwItems / 2),
+                      Wrap(
+                        spacing: 8,
+                        children: (attribute.values ?? []).map((
+                            attributeValue) {
+                          final isSelected = controller
+                              .selectedAttribute[attribute.name] ==
+                              attributeValue;
 
-                  Wrap(
-                    spacing: USizes.sm,
+                          // Check if this specific value is available in any variation
+                          final available = controller
+                              .getAttributesAvailabilityInVariation(
+                              product.productVariations ?? [],
+                              attribute.name ?? '')
+                              .contains(attributeValue);
 
-                    children: attribute.values!.map((attributeValues) {
-                      bool isSelected =
-                          controller.selectedAttribute[attribute.name] ==
-                          attributeValues;
-                      final availabe = controller
-                          .getAttributesAvailabilityInVariation(
-                            product.productVariations!,
-                            attribute.name!,
-                          )
-                          .contains(attributeValues);
-
-                      return UChoiceChip(
-                        text: attributeValues,
-                        selected: true,
-                        onSelected: availabe
-                            ? (selected) {
-                                if (availabe && selected) {
-                                  controller.onAttributeSelected(
-                                    product,
-                                    attribute.name,
-                                    attributeValues,
-                                  );
-                                }
+                          return UChoiceChip(
+                            text: attributeValue,
+                            selected: isSelected,
+                            onSelected: available
+                                ? (selected) {
+                              if (selected) {
+                                controller.onAttributeSelected(
+                                    product, attribute.name ?? '',
+                                    attributeValue);
                               }
-                            : null,
-                      );
-                    }).toList(),
-                  ),
-                ],
-              );
-            }).toList(),
+                            }
+                                : null,
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: USizes.spaceBtwItems),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ],
           ),
-
-          // Attributes - colors , size , brands
-        ],
-      ),
     );
   }
 }
