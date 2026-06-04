@@ -131,7 +131,7 @@ class ProductRepository extends GetxController {
   /// [Fetch] - Function to fetch list of products from Firebase
   Future<List<ProductModel>> fetchFeaturedProducts() async {
     try {
-      final query = await _db.collection(UKeys.productsCollection).where('isFeatured', isEqualTo: true).limit(4).get();
+      final query = await _db.collection(UKeys.productsCollection).where('isFeatured', isEqualTo: true).limit(10).get();
 
       if (query.docs.isNotEmpty) {
         List<ProductModel> products = query.docs.map((document) => ProductModel.fromSnapshot(document)).toList();
@@ -262,19 +262,63 @@ class ProductRepository extends GetxController {
   }
 
   /// [Fetch] - Function to fetch all list of category specific products
+  // Future<List<ProductModel>> getProductsForCategory({required String categoryId, int limit = 4}) async {
+  //   try {
+  //     final productCategoryQuery = limit == -1
+  //         ? await _db.collection(UKeys.productCategoryCollection).where('categoryId', isEqualTo: categoryId).get()
+  //         : await _db.collection(UKeys.productCategoryCollection).where('categoryId', isEqualTo: categoryId).limit(limit).get();
+  //
+  //     List<String> productIds = productCategoryQuery.docs.map((doc) => doc['productId'] as String).toList();
+  //
+  //     final productQuery = await _db.collection(UKeys.productsCollection).where(FieldPath.documentId, whereIn: productIds).get();
+  //
+  //     List<ProductModel> products = productQuery.docs.map((doc) => ProductModel.fromSnapshot(doc)).toList();
+  //
+  //     return products;
+  //   } on FirebaseException catch (e) {
+  //     throw UFirebaseException(e.code).message;
+  //   } on FormatException catch (_) {
+  //     throw UFormatException();
+  //   } on PlatformException catch (e) {
+  //     throw UPlatformException(e.code).message;
+  //   } catch (e) {
+  //     throw 'Something went wrong. Please try again';
+  //   }
+  // }
   Future<List<ProductModel>> getProductsForCategory({required String categoryId, int limit = 4}) async {
     try {
+      // 1. Fetch relations from ProductCategory collection
       final productCategoryQuery = limit == -1
           ? await _db.collection(UKeys.productCategoryCollection).where('categoryId', isEqualTo: categoryId).get()
           : await _db.collection(UKeys.productCategoryCollection).where('categoryId', isEqualTo: categoryId).limit(limit).get();
 
+      // 2. Extract Product IDs
       List<String> productIds = productCategoryQuery.docs.map((doc) => doc['productId'] as String).toList();
 
-      final productQuery = await _db.collection(UKeys.productsCollection).where(FieldPath.documentId, whereIn: productIds).get();
+      // Agar koi product nahi mila toh khali list return kardo
+      if (productIds.isEmpty) return [];
 
-      List<ProductModel> products = productQuery.docs.map((doc) => ProductModel.fromSnapshot(doc)).toList();
+      List<ProductModel> products = [];
+
+      // 🔥 CRITICAL FIX: Firebase 'whereIn' supports max 10 items.
+      // Isliye hum IDs ko 10-10 ke chunks (hisse) mein baant rahe hain.
+      for (int i = 0; i < productIds.length; i += 10) {
+        // 10 items ka ek tukda nikalo
+        int end = (i + 10 < productIds.length) ? i + 10 : productIds.length;
+        List<String> chunk = productIds.sublist(i, end);
+
+        // Chunk wale products fetch karo
+        final productQuery = await _db
+            .collection(UKeys.productsCollection)
+            .where(FieldPath.documentId, whereIn: chunk)
+            .get();
+
+        // Unko main list mein add kardo
+        products.addAll(productQuery.docs.map((doc) => ProductModel.fromSnapshot(doc)).toList());
+      }
 
       return products;
+
     } on FirebaseException catch (e) {
       throw UFirebaseException(e.code).message;
     } on FormatException catch (_) {
@@ -285,7 +329,6 @@ class ProductRepository extends GetxController {
       throw 'Something went wrong. Please try again';
     }
   }
-
   /// [Fetch] - Function to fetch list of favourite products from Firebase
   Future<List<ProductModel>> getFavouriteProducts(List<String> productsIds) async {
     try {

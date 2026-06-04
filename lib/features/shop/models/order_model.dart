@@ -16,6 +16,7 @@ class OrderModel{
   final AddressModel? address;
   final DateTime? deliveryDate;
   final List<CartItemModel> items;
+  final String? deliveryOtp;
 
   OrderModel({
     required this.id,
@@ -26,7 +27,8 @@ class OrderModel{
     required this.orderDate,
     this.paymentMethod = '',
     this.address,
-    this.deliveryDate
+    this.deliveryDate,
+    this.deliveryOtp,
   });
 
   String get formattedOrderDate => UHelperfunctions.getFormattedDate(orderDate);
@@ -51,26 +53,50 @@ class OrderModel{
       'paymentMethod': paymentMethod,
       'address': address?.toJson(), // convert address model to map
       'deliveryDate': deliveryDate,
-      'items': items.map((item) => item.toJson()).toList() // convert CartItemModel to map
+      'items': items.map((item) => item.toJson()).toList(), // convert CartItemModel to map
+      'deliveryOtp': deliveryOtp,
     };
   }
 
   factory OrderModel.fromSnapshot(DocumentSnapshot snapshot){
-    final data = snapshot.data() as Map<String, dynamic>;
+    final data = snapshot.data() as Map<String, dynamic>?;
+
+    // Agar data null aa jaye to crash bachane ke liye (wese hoga nahi)
+    if (data == null) throw Exception("Order data is empty");
 
     return OrderModel(
-      id: data['id'] as String,
-      userId: data['userId'] as String,
-      status: OrderStatus.values.firstWhere((element) => element.toString() == data['status']),
-      totalAmount: data['totalAmount'] as double,
-      orderDate: (data['orderDate'] as Timestamp).toDate(),
-      paymentMethod: data['paymentMethod'] as String,
-      address: AddressModel.fromMap(data['address'] as Map<String, dynamic>),
+      // 1. Strings ke liye safe fallback ('')
+      id: data['id'] ?? '',
+      userId: data['userId'] ?? '',
+
+      // 2. Enum fallback (Agar status galat ho to pending maan lega)
+      status: OrderStatus.values.firstWhere(
+              (element) => element.toString() == data['status'],
+          orElse: () => OrderStatus.pending
+      ),
+
+      // 3. Number safety (Firebase kabhi int deta hai kabhi double, to .toDouble() zaroori hai)
+      totalAmount: (data['totalAmount'] ?? 0.0).toDouble(),
+
+      // 4. Date safety
+      orderDate: data['orderDate'] != null ? (data['orderDate'] as Timestamp).toDate() : DateTime.now(),
+
+      // 🔥 5. Yahan error aa raha tha! (As String hata diya)
+      paymentMethod: data['paymentMethod'] ?? 'COD',
+
+      // 6. Address aur items ke liye null checks
+      address: data['address'] != null ? AddressModel.fromMap(data['address'] as Map<String, dynamic>) : null,
+
       deliveryDate: (data.containsKey('deliveryDate') && data['deliveryDate'] is Timestamp)
           ? (data['deliveryDate'] as Timestamp).toDate()
           : null,
-      items: (data['items'] as List<dynamic>).map((itemData) => CartItemModel.fromJson(itemData as Map<String, dynamic>),).toList(),
+
+      items: data['items'] != null
+          ? (data['items'] as List<dynamic>).map((itemData) => CartItemModel.fromJson(itemData as Map<String, dynamic>)).toList()
+          : [],
+
+      // 7. Aapka OTP hack
+      deliveryOtp: data['deliveryOtp'] ?? '0000',
     );
   }
-
 }

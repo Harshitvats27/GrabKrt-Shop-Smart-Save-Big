@@ -10,6 +10,7 @@ class UKeys{
   static const String productCategoryCollection = 'ProductCategory';
   static const String addressCollection = 'Addresses';
   static const String ordersCollection = 'Orders';
+  static const String allOrdersCollection = 'All_Orders';
   static const String promoCodesCollection = 'PromoCodes';
 
   static const String rememberMeEmail = 'rememberEmail';

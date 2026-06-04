@@ -14,11 +14,33 @@ class OrderRepository extends GetxController{
 
 
   /// [Save] - Save user Order
+  /// [Save] - Save user Order using DUAL-WRITE strategy
   Future<void> saveOrder(OrderModel order) async{
     try{
-      await _db.collection(UKeys.userCollection).doc(order.userId).collection(UKeys.ordersCollection).add(order.toJson());
+      // Create a batch to run multiple writes at the exact same time
+      WriteBatch batch = _db.batch();
+
+      // Write 1: Admin & User History (Users -> {uid} -> Orders -> {orderId})
+      DocumentReference userOrderRef = _db
+          .collection(UKeys.userCollection)
+          .doc(order.userId)
+          .collection(UKeys.ordersCollection)
+          .doc(order.id); // Using order.id instead of .add()
+
+      // Write 2: Delivery Partner App (All_Orders -> {orderId})
+      DocumentReference globalOrderRef = _db
+          .collection(UKeys.allOrdersCollection)
+          .doc(order.id); // Keeping the same ID makes it easy to sync later
+
+      // Add both operations to the batch
+      batch.set(userOrderRef, order.toJson());
+      batch.set(globalOrderRef, order.toJson());
+
+      // Commit the batch to Firebase
+      await batch.commit();
+
     }catch(e){
-      throw 'Something went wrong while saving order info';
+      throw 'Something went wrong while saving order info: $e';
     }
   }
 

@@ -11,7 +11,7 @@ import '../../models/product_variation_model.dart';
 class ProductController extends GetxController {
   static ProductController get instance => Get.find();
   Rx<ProductVariationModel?> selectedVariation = Rx<ProductVariationModel?>(null);
-
+  RxMap<String, dynamic> selectedAttributes = <String, dynamic>{}.obs;
   RxList<ProductModel> featuredProducts = <ProductModel>[].obs;
   RxBool isLoading = false.obs;
 
@@ -22,7 +22,33 @@ class ProductController extends GetxController {
   }
 
   final _productRepository = Get.put(ProductRepository());
+  void onAttributeSelected(ProductModel product, String attributeName, String attributeValue) {
+    // 1. Map mein selected value daalo
+    selectedAttributes[attributeName] = attributeValue;
 
+    // 2. Matching variation dhoondho
+    ProductVariationModel? matchingVariation;
+
+    if (product.productVariations != null && product.productVariations!.isNotEmpty) {
+      for (var variation in product.productVariations!) {
+        bool isMatch = true;
+
+        variation.attributeValues.forEach((key, value) {
+          if (selectedAttributes[key] != value) {
+            isMatch = false;
+          }
+        });
+
+        if (isMatch) {
+          matchingVariation = variation;
+          break; // Match milte hi loop rok do
+        }
+      }
+    }
+
+    // 3. UI ko update karne ke liye selectedVariation me daal do
+    selectedVariation.value = matchingVariation;
+  }
   // Function to get only 4 featured products
   Future<void> getFeaturedProducts() async {
     try {

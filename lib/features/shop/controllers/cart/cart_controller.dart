@@ -126,6 +126,7 @@ class CartController extends GetxController {
   }
 
   // Convert the Product model to CartItemModel with given Quantity
+  // Convert the Product model to CartItemModel with given Quantity
   CartItemModel convertToCartItem(ProductModel product, int quantity) {
     if (product.productType == ProductType.single.toString()) {
       variationController.resetSelectedAttributes();
@@ -136,23 +137,39 @@ class CartController extends GetxController {
     String image = isVariation ? variation.image : product.thumbnail;
     double price = isVariation
         ? variation.salePrice > 0.0
-              ? variation.salePrice
-              : variation.price
+        ? variation.salePrice
+        : variation.price
         : product.salePrice > 0.0
         ? product.salePrice
         : product.price;
-    return CartItemModel(
+
+    print("====================================");
+    print("🟢 STEP 1: Converting Product to Cart Item");
+    print("🛍️ Product Name: ${product.title}");
+    print("🏪 Original Vendor ID (uploadedBy): ${product.uploadedBy}");
+
+    // 🔥 Phele variable mein store kar
+    CartItemModel cartItem = CartItemModel(
       productId: product.id,
       title: product.title,
       price: price,
       image: image,
       quantity: quantity,
       variationId: variation.id,
+      vendorId: product.uploadedBy,
       brandName: product.brand != null ? product.brand!.name : '',
       selectedVariation: isVariation ? variation.attributeValues : null,
     );
-  }
 
+    // 🔥 Phir logs print kar (cartItems nahi, cartItem.toJson() likhna hai)
+    print("🔵 STEP 2: Cart Item Successfully Created!");
+    print("🛒 Cart Item JSON Data ready for storage:");
+    print(cartItem.toJson());
+    print("====================================");
+
+    // 🔥 Sabse last mein return kar
+    return cartItem;
+  }
   void updateCart() {
     updateCartTotals();
     saveCartItems();
