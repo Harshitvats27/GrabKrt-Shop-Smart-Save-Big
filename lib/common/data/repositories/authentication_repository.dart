@@ -53,8 +53,8 @@ class AuthenticationReposiotory extends GetxController {
     } else {
       Localstorage.writeIfNull('isFirstTime', true);
       Localstorage.read('isFirstTime') == true
-          ? Get.to(() => OnboardingScreen())
-          : Get.to(() => LoginScreen());
+          ? Get.offAll(() => const OnboardingScreen())
+          : Get.offAll(() => const LoginScreen());
     }
   }
 
@@ -191,7 +191,9 @@ class AuthenticationReposiotory extends GetxController {
       }
       await FirebaseAuth.instance.signOut();
       await GoogleSignIn().signOut();
-      Get.offAll(() => LoginScreen());
+      Get.offAll(() => const LoginScreen(),
+          transition: Transition.fadeIn,
+          duration: const Duration(milliseconds: 500));
     } on FirebaseAuthException catch (e) {
       throw UFirebaseAuthException(e.code).message;
     } on FirebaseException catch (e) {

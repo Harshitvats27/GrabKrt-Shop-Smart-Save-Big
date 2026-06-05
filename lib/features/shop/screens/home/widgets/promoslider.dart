@@ -33,13 +33,21 @@ class UPromoSlider extends StatelessWidget {
                   (banner) => URoundedImage(
                     imageUrl: banner.imageUrl,
                     isNetworkImage: true,
-                    onTap: ()=>Get.toNamed(banner.targetScreen),
-                  ),
-                )
-                .toList(),
+                    onTap: (banner.phoneNumber.isNotEmpty || banner.targetScreen.isNotEmpty)
+                        ? () {
+                      if (banner.phoneNumber.isNotEmpty) {
+                        // 1st Priority: Phone no. hai toh call lagao
+                        bannerController.makePhoneCall(banner.phoneNumber);
+                      } else if (banner.targetScreen.isNotEmpty) {
+                        // 2nd Priority: Screen name hai toh wahan jao
+                        Get.toNamed(banner.targetScreen);
+                      }
+                    }
+                    // 🔥 Agar dono khali hain, toh onTap ko null kardo
+                        : null,
+                  )).toList(),
             options: CarouselOptions(
-              onPageChanged: (index, reason) =>
-                  bannerController.onPageChanged(index),
+              onPageChanged: (index, reason) => bannerController.onPageChanged(index, reason), // 🔥 Match updated
               height: 180,
               enlargeCenterPage: true,
               autoPlay: true,

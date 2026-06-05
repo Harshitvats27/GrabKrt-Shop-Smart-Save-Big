@@ -20,6 +20,7 @@ import 'package:get/get_core/src/get_main.dart';
 
 import '../../../../../../common/widgets/button/elevated_button.dart';
 import '../../../../../../common/widgets/textfields/promo_code.dart';
+import '../../../../../personalisation/controllers/address_controller.dart';
 import '../../../../controllers/cart/cart_controller.dart';
 import '../../../../controllers/checkout/checkout_controller.dart';
 import '../../../../controllers/order/order_controller.dart';
@@ -34,6 +35,7 @@ class CheckoutScreen extends StatelessWidget {
     final controller = CartController.instance;
     final orderController = Get.put(OrderController());
     final promoCodeController = Get.put(PromoCodeController());
+    final addressController = AddressController.instance;
     double subTotal = controller.totalCartPrice.value;
     double totalPrice = UPricingCalculator.calculateTotalPrice(
       subTotal,
@@ -79,7 +81,6 @@ class CheckoutScreen extends StatelessWidget {
 
       bottomNavigationBar: Obx(() {
         final promoCode = promoCodeController.appliedPromoCode.value;
-        promoCodeController.calculatePriceAfterDiscount(promoCode, totalPrice);
         totalPrice = promoCodeController.calculatePriceAfterDiscount(
           promoCode,
           totalPrice,
@@ -87,11 +88,23 @@ class CheckoutScreen extends StatelessWidget {
 
         return UElevatedButton(
           onPressed: subTotal > 0
-              ? () => CheckoutController.instance.handleCheckout(totalPrice)
+              ? () {
+            // 🔥 MAIN FIX: Check karo ki kya address selected hai ya nahi!
+            if (addressController.selectedAddress.value.id.isEmpty) {
+              // Agar khali hai toh Warning Snackbar dikhao
+              USnackBarHelpers.warningSnackBar(
+                title: 'Address Missing',
+                message: 'Please select or add a delivery address to place your order.',
+              );
+            } else {
+              // Agar address hai, toh order process karo
+              CheckoutController.instance.handleCheckout(totalPrice);
+            }
+          }
               : () => USnackBarHelpers.errorSnackBar(
-                  title: 'Empty Cart',
-                  message: 'Add items in the cart',
-                ),
+            title: 'Empty Cart',
+            message: 'Add items in the cart',
+          ),
           child: Text('Checkout ${UTexts.currency}${totalPrice.toStringAsFixed(2)}'),
         );
       }),

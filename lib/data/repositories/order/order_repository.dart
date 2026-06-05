@@ -27,7 +27,8 @@ class OrderRepository extends GetxController{
           .collection(UKeys.ordersCollection)
           .doc(order.id); // Using order.id instead of .add()
 
-      // Write 2: Delivery Partner App (All_Orders -> {orderId})
+      // Write 2: Delivery Partner App
+      // (All_Orders -> {orderId})
       DocumentReference globalOrderRef = _db
           .collection(UKeys.allOrdersCollection)
           .doc(order.id); // Keeping the same ID makes it easy to sync later
@@ -45,21 +46,29 @@ class OrderRepository extends GetxController{
   }
 
   /// [Fetch] - Fetch user orders
-  Future<List<OrderModel>> fetchUserOrders() async{
-    try{
+  /// [Fetch] - Fetch user orders
+  Future<List<OrderModel>> fetchUserOrders() async {
+    try {
       final userId = AuthenticationReposiotory.instance.currentUser!.uid;
-      if(userId.isEmpty) throw 'Unable to find user information';
+      if (userId.isEmpty) throw 'Unable to find user information';
 
-      final query = await _db.collection(UKeys.userCollection).doc(userId).collection(UKeys.ordersCollection).get();
-      if(query.docs.isNotEmpty){
+      // 🔥 NAYA CHANGE: .orderBy('orderDate', descending: true) add kiya hai
+      final query = await _db
+          .collection(UKeys.userCollection)
+          .doc(userId)
+          .collection(UKeys.ordersCollection)
+          .orderBy('orderDate', descending: true) // Naye orders top par aayenge
+          .get();
+
+      if (query.docs.isNotEmpty) {
         List<OrderModel> orders = query.docs.map((doc) => OrderModel.fromSnapshot(doc)).toList();
         return orders;
       }
 
       return [];
 
-    }catch(e){
-      throw 'Something went wrong while order info';
+    } catch (e) {
+      throw 'Something went wrong while fetching order info';
     }
   }
 }

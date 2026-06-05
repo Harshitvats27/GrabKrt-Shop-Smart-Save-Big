@@ -235,10 +235,10 @@ class UHelperfunctions{
       return 'Good Morning';
     } else if (hour >= 12 && hour < 16) { // 12PM to 4PM
       return 'Good Afternoon';
-    } else if (hour >= 16 && hour < 19) { // 5PM to 7PM
+    } else if (hour >= 16 && hour < 22) { // 5PM to 7PM
       return 'Good Evening';
     } else {
-      return 'Good Night';
+      return '';
     }
   }
   static String getFormattedDate(DateTime date, {String format = 'dd MMM yyyy'}) {

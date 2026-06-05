@@ -42,7 +42,7 @@ class UserController extends GetxController {
       await fetchUserDetails();
       if (user.value.id.isEmpty) {
         final nameParts = UserModel.nameParts(userCredential.user!.displayName);
-        final username = '${userCredential.user!.displayName}2027';
+        final username = '${userCredential.user!.displayName}';
         UserModel userModel = UserModel(
           id: userCredential.user!.uid,
           firstName: nameParts[0],

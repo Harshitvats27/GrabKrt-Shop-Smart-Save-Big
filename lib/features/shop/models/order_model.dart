@@ -47,7 +47,7 @@ class OrderModel{
     return {
       'id': id,
       'userId': userId,
-      'status' : status.toString(), // Enum to string
+      'status' : status.toString().split('.').last, // Sirf naam save karega, jaise 'pending'// Enum to string
       'totalAmount': totalAmount,
       'orderDate' : orderDate,
       'paymentMethod': paymentMethod,
@@ -71,8 +71,16 @@ class OrderModel{
 
       // 2. Enum fallback (Agar status galat ho to pending maan lega)
       status: OrderStatus.values.firstWhere(
-              (element) => element.toString() == data['status'],
-          orElse: () => OrderStatus.pending
+            (element) {
+          // Database se aane wala status lowercase mein convert kar lo (e.g., 'Shipped' -> 'shipped')
+          String dbStatus = (data['status'] ?? '').toString().toLowerCase();
+
+          // Enum ka aakhiri hissa nikal lo (e.g., 'OrderStatus.pending' -> 'pending')
+          String enumName = element.toString().split('.').last.toLowerCase();
+
+          return dbStatus.contains(enumName);
+        },
+        orElse: () => OrderStatus.pending,
       ),
 
       // 3. Number safety (Firebase kabhi int deta hai kabhi double, to .toDouble() zaroori hai)

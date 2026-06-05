@@ -5,19 +5,22 @@ import 'package:e_commerce_application/utils/pop_ups/full_screen_loader.dart';
 import 'package:e_commerce_application/utils/pop_ups/snackbar_helpers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 
 import '../../../../../common/data/repositories/user/user_repository.dart';
 
 class ChangeNameController extends GetxController {
   static ChangeNameController get instance => Get.find();
 
+  // 🔥 1. Saare Naye TextEditingControllers Add Kar Diye Hain
   final firstName = TextEditingController();
   final lastName = TextEditingController();
+  final userName = TextEditingController();
+  final email = TextEditingController();
+  final phoneNumber = TextEditingController();
+
   final _userController = UserController.instance;
   final updateUserFormKey = GlobalKey<FormState>();
   final _userRepository = UserRepository.instance;
-
 
   @override
   void onInit() {
@@ -25,9 +28,13 @@ class ChangeNameController extends GetxController {
     super.onInit();
   }
 
+  // 🔥 2. Screen khulte hi purana data automatically fields me bhar jayega
   void initializeNames() {
     firstName.text = _userController.user.value.firstName;
     lastName.text = _userController.user.value.lastName;
+    userName.text = _userController.user.value.username;
+    email.text = _userController.user.value.email;
+    phoneNumber.text = _userController.user.value.phoneNumber;
   }
 
   Future<void> updateUsername() async {
@@ -36,35 +43,50 @@ class ChangeNameController extends GetxController {
         'We are updating your information...',
       );
 
-      // connectivity
+      // Check internet connectivity
       bool isConnected = await NetworkManager.instance.isConnected();
       if(!isConnected){
-       UFullScreenLoader.stopLoading();
-       return;
+        UFullScreenLoader.stopLoading();
+        return;
       }
+
+      // Form Validation check
       if (!updateUserFormKey.currentState!.validate()) {
         UFullScreenLoader.stopLoading();
         return;
       }
-      Map<String,dynamic>map={
-        'firstName':firstName.text,
-        'lastName':lastName.text,
+
+      // 🔥 3. Firebase me save hone wala Naya Map Update kar diya
+      Map<String,dynamic> map = {
+        'firstName': firstName.text.trim(),
+        'lastName': lastName.text.trim(),
+        'username': userName.text.trim(),
+        'email': email.text.trim(),
+        'phoneNumber': phoneNumber.text.trim(),
       };
-     await _userRepository.updateSingleField(map);
 
-     _userController.user.value.firstName=firstName.text;
-     _userController.user.value.lastName=lastName.text;
-     
-     UFullScreenLoader.stopLoading();
-     Get.offAll(()=>NavigationMenu());
-     USnackBarHelpers.successSnackBar(title: 'Congratulations',message: 'Your name has been updated');
+      // Update data in Firebase
+      await _userRepository.updateSingleField(map);
 
-      
-      
+      // 🔥 4. App ke State (UserController) ko bhi immediately update kar diya
+      _userController.user.value.firstName = firstName.text.trim();
+      _userController.user.value.lastName = lastName.text.trim();
+      _userController.user.value.username = userName.text.trim();
+      _userController.user.value.email = email.text.trim();
+      _userController.user.value.phoneNumber = phoneNumber.text.trim();
+
+      // Loading band karo aur wapas bhejo
+      UFullScreenLoader.stopLoading();
+      Get.offAll(() => const NavigationMenu());
+      USnackBarHelpers.successSnackBar(
+          title: 'Congratulations',
+          message: 'Your profile has been successfully updated.'
+      );
+
     } catch (e) {
       UFullScreenLoader.stopLoading();
       USnackBarHelpers.warningSnackBar(
-        title: 'Update Name Failed',
+        title: 'Update Profile Failed',
         message: e.toString(),
       );
     }

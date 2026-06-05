@@ -23,7 +23,11 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     Get.put(LoginController());
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: UPadding.screenPadding,

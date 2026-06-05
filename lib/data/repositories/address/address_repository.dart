@@ -70,4 +70,24 @@ class AddressRepository extends GetxController{
       throw 'Unable to update selected address. Please try again';
     }
   }
+  /// 🔥 NAYA FUNCTION: Update Existing Address in Firebase
+  Future<void> updateAddress(AddressModel address) async {
+    try {
+      // 1. Current user ki ID uthao
+      final userId = AuthenticationReposiotory.instance.currentUser!.uid;
+      if (userId.isEmpty) throw 'Unable to find user information. Try again in few minutes.';
+
+      // 2. Us user ke address collection mein jaao, specific ID pakdo aur update karo
+      await _db
+          .collection('Users')
+          .doc(userId)
+          .collection('Addresses')
+          .doc(address.id)
+          .update(address.toJson());
+
+    } catch (e) {
+      throw 'Something went wrong while updating Address Information. Try again later';
+    }
+  }
+
 }

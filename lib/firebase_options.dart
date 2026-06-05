@@ -52,23 +52,21 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyDktdTYKLKAjRxjaDIlooXoxEoGvBSyw4w',
-    appId: '1:570946167817:android:3b894dcc66eebaf78e04d8',
+    appId: '1:570946167817:android:f29fa71ea16167248e04d8',
     messagingSenderId: '570946167817',
     projectId: 'shoppingapp-2ce57',
     storageBucket: 'shoppingapp-2ce57.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyB2RDd2JBcatPHATnfihvxl5dktz37ZfD4',
-    appId: '1:570946167817:ios:656c45a828ae2bb38e04d8',
+    appId: '1:570946167817:ios:82cfa5926834b1d68e04d8',
     messagingSenderId: '570946167817',
     projectId: 'shoppingapp-2ce57',
     storageBucket: 'shoppingapp-2ce57.firebasestorage.app',
     androidClientId: '570946167817-95j9db66rgdlk3uebm56k9pbjptuojdf.apps.googleusercontent.com',
-    iosClientId: '570946167817-s254gbjpgugbvvbju9kk9dfiqalstg7j.apps.googleusercontent.com',
-    iosBundleId: 'com.example.eCommerceApplication',
+    iosClientId: '570946167817-7rddkj3o5usgnacjsip91d6te8bg1283.apps.googleusercontent.com',
+    iosBundleId: 'com.harshitvats.grabkrt',
   );
-
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyB2RDd2JBcatPHATnfihvxl5dktz37ZfD4',
     appId: '1:570946167817:ios:656c45a828ae2bb38e04d8',
@@ -89,5 +87,4 @@ class DefaultFirebaseOptions {
     storageBucket: 'shoppingapp-2ce57.firebasestorage.app',
     measurementId: 'G-8X3779HJQV',
   );
-
 }

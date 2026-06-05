@@ -103,7 +103,7 @@ final ProductModel productId;
                     children: [
                       UProductTitleText(title: productId.title,smallSize: true,),
                       SizedBox(height: USizes.spaceBtwItems/2),
-                      UBrandTitleWithVerifyIcon(title: productId.brand!.name,),
+                      UBrandTitleWithVerifyIcon(title: productId.brand?.name ?? 'No Brand'),
                       SizedBox(height: USizes.spaceBtwItems/2)
 
                     ],

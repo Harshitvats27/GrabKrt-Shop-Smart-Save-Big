@@ -12,6 +12,7 @@ import 'package:iconsax/iconsax.dart';
 import '../../../../../navigation_menu.dart';
 import '../../../../../utils/constants/sizes.dart';
 import '../../../controllers/order/order_controller.dart';
+import '../order_details_screen.dart';
 
 class UOrderListItems extends StatelessWidget {
   const UOrderListItems({super.key});
@@ -61,11 +62,9 @@ class UOrderListItems extends StatelessWidget {
                   statusIcon = Iconsax.box;
                 }
 
-                // 🔥 1. GESTURE DETECTOR ADD KIYA (Future screen ke liye)
                 return GestureDetector(
                   onTap: () {
-                    // TODO: Aage chal kar yahan se OrderDetailsScreen kholenge (Photos + Tracking ke liye)
-                    print("Order Clicked: ${order.id}");
+                    Get.to(() => OrderDetailsScreen(order: order));
                   },
                   child: URoundedContainer(
                     showBorder: true,
@@ -116,7 +115,6 @@ class UOrderListItems extends StatelessWidget {
                                   children: [
                                     const Icon(Iconsax.tag, color: Colors.grey),
                                     const SizedBox(width: USizes.spaceBtwItems / 2),
-                                    // 🔥 2. REAL DATABASE ID (With overflow handling)
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -150,51 +148,47 @@ class UOrderListItems extends StatelessWidget {
                           ),
                         ),
 
-                        // --- BOTTOM SECTION (Delivery PIN for Prepaid) ---
-                        if (payMode != 'COD' && payMode != 'Cash on Delivery' && !currentStatus.contains('deliver')) ...[
+                        // --- BOTTOM SECTION (OTP) ---
+                        // --- BOTTOM SECTION (OTP) ---
+                        if (!currentStatus.contains('deliver') && !currentStatus.contains('cancelled')) ...[
                           Padding(
                             padding: const EdgeInsets.only(left: USizes.md, right: USizes.md, bottom: USizes.md),
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 15),
-                              decoration: BoxDecoration(
-                                  color: UColors.primary.withOpacity(0.05),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: UColors.primary.withOpacity(0.3), width: 1.5),
-                                  boxShadow: [BoxShadow(color: UColors.primary.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))]
-                              ),
-                              // 🔥 3. RENDER FLEX OVERFLOW FIX (Expanded used)
+                            child: URoundedContainer(
+                              backgroundColor: UColors.primary.withOpacity(0.1),
+                              padding: const EdgeInsets.all(USizes.md),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
+                                  // 🔥 FIX: Expanded laga diya taaki lamba text screen ke bahar na bage
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        Text("Delivery PIN", style: Theme.of(context).textTheme.labelMedium!.apply(color: UColors.primary)),
-                                        const SizedBox(height: 2),
-                                        const Text("Share with delivery partner", style: TextStyle(fontSize: 10, color: Colors.grey), overflow: TextOverflow.ellipsis),
+                                        Text("Delivery PIN", style: Theme.of(context).textTheme.titleMedium!.apply(color: UColors.primary)),
+                                        const Text(
+                                          "Share with delivery partner",
+                                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                                          overflow: TextOverflow.ellipsis, // 🔥 FIX: Agar text zyada lamba hua toh '...' dikhega
+                                        ),
                                       ],
                                     ),
                                   ),
-                                  const SizedBox(width: 10),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                                    decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
-                                    child: Text(
-                                        order.deliveryOtp ?? '0000',
-                                        style: Theme.of(context).textTheme.headlineMedium!.apply(
-                                            color: UColors.primary,
-                                            letterSpacingDelta: 6,
-                                            fontWeightDelta: 2
-                                        )
+                                  const SizedBox(width: 10), // Dono ke beech thoda gap
+
+                                  Text(
+                                    order.deliveryOtp ?? '0000',
+                                    style: Theme.of(context).textTheme.headlineMedium!.apply(
+                                        color: UColors.primary,
+                                        letterSpacingDelta: 5,
+                                        fontWeightDelta: 2
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                          )
+                          ),
                         ]
+                        // 🔥 Yahan ek extra ']' tha jo ab maine hata diya hai
                       ],
                     ),
                   ),

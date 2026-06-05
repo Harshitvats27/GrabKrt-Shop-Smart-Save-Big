@@ -10,22 +10,19 @@ import '../../../../utils/pop_ups/snackbar_helpers.dart';
 import '../../models/promo_code_model.dart';
 import '../cart/cart_controller.dart';
 
-class PromoCodeController extends GetxController{
+class PromoCodeController extends GetxController {
   static PromoCodeController get instance => Get.find();
 
-// variables
-get _repository => Get.put(PromoCodeRepository());
-RxString promoCode=''.obs;
-RxBool isLoading=false.obs;
-Rx<PromoCodeModel>appliedPromoCode=PromoCodeModel.empty().obs;
-final cartController=Get.put(CartController());
+  // variables
+  get _repository => Get.put(PromoCodeRepository());
+  RxString promoCode = ''.obs;
+  RxBool isLoading = false.obs;
+  Rx<PromoCodeModel> appliedPromoCode = PromoCodeModel.empty().obs;
+  final cartController = Get.put(CartController());
 
-// functions
-
-
-
-  void onPromoChanged(String value){
-    promoCode.value=value;
+  // functions
+  void onPromoChanged(String value) {
+    promoCode.value = value;
   }
 
   Future<void> applyPromoCode() async {
@@ -65,7 +62,7 @@ final cartController=Get.put(CartController());
         return;
       }
 
-      if(!promoCode.isActive){
+      if (!promoCode.isActive) {
         USnackBarHelpers.warningSnackBar(
           title: 'Promo Code Deactivated',
           message: 'This promo code has been deactivated',
@@ -75,11 +72,14 @@ final cartController=Get.put(CartController());
 
       // check order
       double subTotal = cartController.totalCartPrice.value;
+
+      // 🔥 FIX 1: 'Kenya' hata kar 'India' kar diya
       double totalPrice = UPricingCalculator.calculateTotalPrice(
         subTotal,
-        'Kenya',
+        'India',
       );
-      if (!(totalPrice >= promoCode.minOrderPrice) ){
+
+      if (!(totalPrice >= promoCode.minOrderPrice)) {
         USnackBarHelpers.warningSnackBar(
           title: 'Minimum Order Price Not Reached',
           message: 'Minimum order amount be ${UTexts.currency}${promoCode.minOrderPrice.toStringAsFixed(0)} to apply this promo code',
@@ -87,18 +87,18 @@ final cartController=Get.put(CartController());
         return;
       }
 
-
       // check available promo codes
-      if(!(promoCode.noOfPromoCodes>0)){
+      if (!(promoCode.noOfPromoCodes > 0)) {
         USnackBarHelpers.warningSnackBar(
           title: 'Promo Code Expired',
           message: 'This promo code has been deactivated',
         );
         return;
       }
-      List<String> userIds=promoCode.userIds ?? [];
-      String currentUserId=AuthenticationReposiotory.instance.currentUser!.uid;
-      if(userIds.contains(currentUserId)){
+
+      List<String> userIds = promoCode.userIds ?? [];
+      String currentUserId = AuthenticationReposiotory.instance.currentUser!.uid;
+      if (userIds.contains(currentUserId)) {
         USnackBarHelpers.warningSnackBar(
           title: 'Already Applied',
           message: 'You Have Already Applied the Promo Code',
@@ -106,13 +106,8 @@ final cartController=Get.put(CartController());
         return;
       }
 
-
-
-      appliedPromoCode.value=promoCode;
+      appliedPromoCode.value = promoCode;
       cartController.updateCart();
-
-
-
 
     } catch (e) {
       USnackBarHelpers.errorSnackBar(
@@ -124,27 +119,21 @@ final cartController=Get.put(CartController());
     }
   }
 
-  double calculatePriceAfterDiscount(
-      PromoCodeModel promoCode,
-      double totalPrice,
-      ) {
+  // 🔥 FIX 2: UPricingCalculator ke purane functions hatakar discount ka logic yahi likh diya
+  double calculatePriceAfterDiscount(PromoCodeModel promoCode, double totalPrice) {
     if (promoCode.id.isNotEmpty) {
       if (promoCode.discountType == DiscountType.percentage) {
-        return UPricingCalculator.calculatePercentageDiscount(
-          totalPrice,
-          promoCode.discount,
-        );
+        // Percentage ke hisaab se discount nikalna (Total - (Total * Discount%))
+        return totalPrice - (totalPrice * (promoCode.discount / 100));
       } else {
-        return UPricingCalculator.calculateFixedDiscount(
-          totalPrice,
-          promoCode.discount,
-        );
+        // Flat fixed discount nikalna (Total - Discount)
+        return totalPrice - promoCode.discount;
       }
     }
-
     return totalPrice;
   }
-// Get Discount Price
+
+  // Get Discount Price
   String getDiscountPrice() {
     if (appliedPromoCode.value.id.isEmpty) return '';
 
@@ -155,13 +144,11 @@ final cartController=Get.put(CartController());
     }
   }
 
-
   Future<void> decreaseNoOfPromoCodes() async {
     try {
       if (appliedPromoCode.value.id.isEmpty) return;
 
-      int noOfPromoCodes =
-          appliedPromoCode.value.noOfPromoCodes - 1;
+      int noOfPromoCodes = appliedPromoCode.value.noOfPromoCodes - 1;
 
       await _repository.updateSingleField(
         appliedPromoCode.value,
@@ -180,14 +167,11 @@ final cartController=Get.put(CartController());
   /// Function to add the user to applied promo code
   Future<void> addUserToPromoCode() async {
     try {
-
       if (appliedPromoCode.value.id.isEmpty) return;
 
-      List<String> userIds =
-          appliedPromoCode.value.userIds ?? [];
+      List<String> userIds = appliedPromoCode.value.userIds ?? [];
 
-      userIds.add(AuthenticationReposiotory
-          .instance.currentUser!.uid);
+      userIds.add(AuthenticationReposiotory.instance.currentUser!.uid);
 
       await _repository.updateSingleField(
         appliedPromoCode.value,
@@ -202,7 +186,4 @@ final cartController=Get.put(CartController());
       );
     }
   }
-
-
-
 }

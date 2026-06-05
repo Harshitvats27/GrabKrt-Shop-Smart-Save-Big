@@ -20,7 +20,7 @@ class USpecialButtoms extends StatelessWidget {
       children: [
         buildButton(UImages.googleIcon,controller.googleSignIn),
         SizedBox(width: USizes.spaceBtwItems),
-        buildButton(UImages.facebookIcon,(){}),
+        //buildButton(UImages.facebookIcon,(){}),
 
       ],
     );

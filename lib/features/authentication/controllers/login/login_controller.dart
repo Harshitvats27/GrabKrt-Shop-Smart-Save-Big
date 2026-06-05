@@ -1,7 +1,9 @@
 import 'package:e_commerce_application/common/data/repositories/authentication_repository.dart';
+import 'package:e_commerce_application/common/data/repositories/user/user_repository.dart'; // 🔥 ADDED: UserRepository import kiya
 import 'package:e_commerce_application/utils/constants/key.dart';
 import 'package:e_commerce_application/utils/pop_ups/full_screen_loader.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart'; // 🔥 ADDED: Messaging import kiya
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -22,12 +24,27 @@ class LoginController extends GetxController {
   final loginFormKey = GlobalKey<FormState>();
   final localStorage = GetStorage();
 
-
   @override
   void onInit() {
     email.text=localStorage.read(UKeys.rememberMeEmail)??'';
     password.text=localStorage.read(UKeys.rememberMePassword)??'';
     super.onInit();
+  }
+
+  // 🔥 ADDED: Token nikalne aur save karne ka function
+  Future<void> _saveUserToken() async {
+    try {
+      String? token = await FirebaseMessaging.instance.getToken();
+      if (token != null) {
+        // Tere UserRepository ka updateSingleField use kar rahe hain
+        await UserRepository.instance.updateSingleField({
+          'userDeviceToken': token,
+        });
+        print("🔥 Token Saved to Firebase: $token");
+      }
+    } catch (e) {
+      print("❌ Token Error: $e");
+    }
   }
 
   Future<void> loginWithEmailandPassword() async {
@@ -58,6 +75,10 @@ class LoginController extends GetxController {
         email.text.trim(),
         password.text.trim(),
       );
+
+      // 🔥 ADDED: Screen redirect se pehle token save karwao
+      await _saveUserToken();
+
       UFullScreenLoader.stopLoading();
       AuthenticationReposiotory.instance.screenRedirect();
     } catch (e) {
@@ -69,33 +90,35 @@ class LoginController extends GetxController {
     }
   }
 
-
   Future<void> googleSignIn()async{
-try{
-  // start Loading
-  UFullScreenLoader.openLoadingDialog('Logging You in.......');
+    try{
+      // start Loading
+      UFullScreenLoader.openLoadingDialog('Logging You in.......');
 
-  // Check Internet Connectivity
-  final isConnected = await NetworkManager.instance.isConnected();
-  if (!isConnected) {
-    UFullScreenLoader.stopLoading();
-    USnackBarHelpers.warningSnackBar(title: 'No Internet Connection');
-    return;
-  }
+      // Check Internet Connectivity
+      final isConnected = await NetworkManager.instance.isConnected();
+      if (!isConnected) {
+        UFullScreenLoader.stopLoading();
+        USnackBarHelpers.warningSnackBar(title: 'No Internet Connection');
+        return;
+      }
 
-  // Google Authrntication
-  UserCredential userCredential = await AuthenticationReposiotory.instance.loginWithGoogle();
-  
-  await _userContrller.saveUserRecord(userCredential);
+      // Google Authrntication
+      UserCredential userCredential = await AuthenticationReposiotory.instance.loginWithGoogle();
 
-  UFullScreenLoader.stopLoading();
-  AuthenticationReposiotory.instance.screenRedirect();
+      await _userContrller.saveUserRecord(userCredential);
 
-}catch(e){
-  UFullScreenLoader.stopLoading();
-  USnackBarHelpers.errorSnackBar(
-      title: 'Login Failed',
-      message: e.toString());
-}
+      // 🔥 ADDED: Screen redirect se pehle token save karwao
+      await _saveUserToken();
+
+      UFullScreenLoader.stopLoading();
+      AuthenticationReposiotory.instance.screenRedirect();
+
+    }catch(e){
+      UFullScreenLoader.stopLoading();
+      USnackBarHelpers.errorSnackBar(
+          title: 'Login Failed',
+          message: e.toString());
+    }
   }
 }

@@ -1,48 +1,33 @@
 class UPricingCalculator {
 
-  /// Calculate Price based on tax and shipping
-  static double calculateTotalPrice(double subTotal, String location) {
-    double taxRate = getTaxRateForLocation(location);
-    double taxAmount = subTotal * taxRate;
-
-    double shippingCost = getShippingCost(location);
-
-    double totalPrice = subTotal + taxAmount + shippingCost;
-    return totalPrice;
-  }
-
-  /// Calculate shipping cost
+  // ==========================================
+  // 1. SHIPPING / DELIVERY FEE (Fixed ₹15)
+  // ==========================================
   static String calculateShippingCost(double subTotal, String location) {
-    double shippingCost = getShippingCost(location);
+    // Tune bola 15 kar de, toh ye fixed ₹15 ho gaya
+    double shippingCost = 15.0;
     return shippingCost.toStringAsFixed(2);
   }
 
-  /// Calculate tax
-  static String calculateTax(double subTotal, String location) {
-    double taxRate = getTaxRateForLocation(location);
-    double taxAmount = subTotal * taxRate;
+  // ==========================================
+  // 2. TAX FEE (Subtotal ka 5%)
+  // ==========================================
+  static String calculateTax(double productPrice, String location) {
+    // 5% tax nikalne ke liye 0.05 se multiply kiya hai
+    double taxRate = 0.05;
+    double taxAmount = productPrice * taxRate;
     return taxAmount.toStringAsFixed(2);
   }
 
-  /// Calculate Tax based on location
-  static double getTaxRateForLocation(String location) {
-    return 0.10; // 10%
-  }
+  // ==========================================
+  // 3. TOTAL PRICE CALCULATION
+  // ==========================================
+  static double calculateTotalPrice(double productPrice, String location) {
+    double taxAmount = double.tryParse(calculateTax(productPrice, location)) ?? 0.0;
+    double shippingCost = double.tryParse(calculateShippingCost(productPrice, location)) ?? 0.0;
 
-  /// Calculate Shipping Cost
-  static double getShippingCost(String location) {
-    return 20.00; // $20
-  }
-
-  /// Calculate Discount percentage
-  static double calculatePercentageDiscount(double totalPrice, double discount){
-    double discountPrice = (totalPrice * discount) / 100;
-
-    return totalPrice - discountPrice;
-  }
-
-  /// Calculate Discount based on fixed amount
-  static double calculateFixedDiscount(double totalPrice, double discount){
-    return totalPrice - discount;
+    // Grand Total = Subtotal + Tax (5%) + Shipping (15)
+    double totalPrice = productPrice + taxAmount + shippingCost;
+    return totalPrice;
   }
 }

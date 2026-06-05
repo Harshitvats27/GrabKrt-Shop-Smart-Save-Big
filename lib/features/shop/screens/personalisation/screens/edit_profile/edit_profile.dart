@@ -50,7 +50,7 @@ class EditProfileScree extends StatelessWidget {
                 UserDetailRow(
                   title: 'Username',
                   value: controller.user.value.username,
-                  onTap: () {},
+                    onTap: ()=>Get.to(()=>ChangeNameScreen())
                 ),
                 SizedBox(height: USizes.spaceBtwItems),
 
@@ -67,12 +67,12 @@ class EditProfileScree extends StatelessWidget {
                 UserDetailRow(
                   title: 'Email',
                   value: controller.user.value.email,
-                  onTap: () {},
+                    onTap: ()=>Get.to(()=>ChangeNameScreen())
                 ),
                 UserDetailRow(
                   title: 'Phone Number',
                   value: '+91${controller.user.value.phoneNumber}',
-                  onTap: () {},
+                    onTap: ()=>Get.to(()=>ChangeNameScreen())
                 ),
                 // UserDetailRow(title: 'Gender', value: 'Male', onTap: () {}),
                 // SizedBox(height: USizes.spaceBtwItems),

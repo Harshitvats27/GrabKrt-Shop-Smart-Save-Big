@@ -25,6 +25,8 @@ class AddressController extends GetxController {
   final name = TextEditingController();
   final phoneNumber = TextEditingController();
   final street = TextEditingController();
+
+
   final postalCode = TextEditingController();
   final city = TextEditingController();
   final state = TextEditingController();
@@ -224,5 +226,76 @@ class AddressController extends GetxController {
     longitude.text = position.target.longitude.toString();
     update();
   }
+
+  /// --- EDIT ADDRESS LOGIC ---
+
+  // 1. Jab bhi Edit button dabega, pehle purana data fields mein bhar do
+  void initAddressData(AddressModel address) {
+    name.text = address.name;
+    phoneNumber.text = address.phoneNumber;
+    street.text = address.street;
+    postalCode.text = address.postalCode;
+    city.text = address.city;
+    state.text = address.state;
+    country.text = address.country;
+    latitude.text = address.latitude.toString();
+    longitude.text = address.longitude.toString();
+    selectedAddressType.value = address.addressType.isNotEmpty ? address.addressType : 'Home';
+    update();
+  }
+
+  // 2. Naya data save karne ke liye
+  Future<void> updateExistingAddress(String addressId, bool isSelected) async {
+    try {
+      UFullScreenLoader.openLoadingDialog('Updating Address...');
+
+      final isConnected = await NetworkManager.instance.isConnected();
+      if (!isConnected) {
+        UFullScreenLoader.stopLoading();
+        return;
+      }
+
+      if (!addressFormKey.currentState!.validate()) {
+        UFullScreenLoader.stopLoading();
+        return;
+      }
+
+      // Naya updated address model banao
+      AddressModel updatedAddress = AddressModel(
+        id: addressId,
+        name: name.text.trim(),
+        phoneNumber: phoneNumber.text.trim(),
+        street: street.text.trim(),
+        city: city.text.trim(),
+        state: state.text.trim(),
+        postalCode: postalCode.text.trim(),
+        country: country.text.trim(),
+        selectedAddress: isSelected, // Purana selection status maintain rakho
+        dateTime: DateTime.now(),
+        latitude: double.tryParse(latitude.text.trim()) ?? 0.0,
+        longitude: double.tryParse(longitude.text.trim()) ?? 0.0,
+        addressType: selectedAddressType.value,
+      );
+
+      // Firebase me update call karo
+      // NOTE: Apne AddressRepository mein updateAddress(AddressModel address) function bana lena agar nahi hai toh
+      await _repository.updateAddress(updatedAddress);
+
+      // Agar yehi selected address tha, toh local state bhi update kar do
+      if(selectedAddress.value.id == addressId){
+        selectedAddress.value = updatedAddress;
+      }
+
+      UFullScreenLoader.stopLoading();
+      resetFormFields();
+      Navigator.pop(Get.context!); // Edit screen band karo
+      USnackBarHelpers.successSnackBar(title: 'Success', message: 'Address updated successfully');
+      refreshData.toggle(); // List ko refresh karo
+    } catch (e) {
+      UFullScreenLoader.stopLoading();
+      USnackBarHelpers.errorSnackBar(title: 'Error', message: e.toString());
+    }
+  }
+
 
 }
