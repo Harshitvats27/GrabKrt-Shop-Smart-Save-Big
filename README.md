@@ -4,7 +4,7 @@ The primary shopping interface designed for a seamless, fast, and interactive us
 
 > **Status:** ✅ Successfully completed **14 days of Closed Testing** on Google Play Console and is now **live in Production**.
 ---
-![Grabkrt:Shop Mart, Save Big](assets/logo_dark.png)
+![Grabkrt:Shop Mart, Save Big](assets/logo/img.png)
 
 ---
 **Dashboard Proof:**
