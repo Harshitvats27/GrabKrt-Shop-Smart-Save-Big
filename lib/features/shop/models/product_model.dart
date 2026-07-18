@@ -106,7 +106,7 @@ class ProductModel {
       isFeatured: data['isFeatured'] ?? false,
       storeId: data['storeId'],     // 🔥 Naya addition
       storeName: data['storeName'], // 🔥 Naya addition
-
+      brand: data['brand'] != null ? BrandModel.fromJson(data['brand']) : null,
       productVariations: data['productVariations'] is List
           ? (data['productVariations'] as List)
           .map((e) => ProductVariationModel.fromJson(
@@ -151,6 +151,7 @@ class ProductModel {
       categoryId: data['categoryId'],
       storeId: data['storeId'],     // 🔥 Naya addition
       storeName: data['storeName'], // 🔥 Naya addition
+      // brand: data['brand'] != null ? BrandModel.fromJson(data['brand']) : null,
       images: data['images'] != null ? List<String>.from(data['images']) : [],
 
       productAttributes: data['productAttributes'] != null

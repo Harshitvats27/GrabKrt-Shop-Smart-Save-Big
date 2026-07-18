@@ -1,7 +1,7 @@
 name: e_commerce_application
 description: "A new Flutter project."
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.0+5
 environment:
   sdk: ^3.8.1
 
@@ -40,6 +40,7 @@ dependencies:
   firebase_storage: ^13.0.6
   url_launcher: ^6.3.2
   change_app_package_name: ^1.5.0
+  flutter_dotenv: ^6.0.1
 
 
 
@@ -90,25 +91,31 @@ flutter:
 
 flutter_native_splash:
   color: "#FFFFFF"
-  color_dark: "#000000"
-  image_dark: assets/logo/black_app_logo.png
-  image: assets/logo/white_app_logo.png
+  image: "assets/logo/logo_light.png" # 👈 Light mode ka logo (Blue wala)
+
+  color_dark: "#121212"
+  image_dark: "assets/logo/logo_dark.png" # 👈 Dark mode ka logo (Yeh zaroori hai!)
 
   android_12:
     color: "#FFFFFF"
-    color_dark: "#000000"
-    image_dark: assets/logo/black_app_logo.png
-    image: assets/logo/white_app_logo.png
+    image: "assets/logo/logo_light.png"
+    color_dark: "#121212"
+    image_dark: "assets/logo/logo_dark.png"
 
-  web: false
-
-flutter_launcher_icons:
   android: true
   ios: true
-  android_round: true
-  adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_background_dark: "#000000"
-  adaptive_icon_foreground: "assets/logo/app_logo_light.png"
-  adaptive_icon_foreground_dark: "assets/logo/app_logo_dark.png"
-  image_path_android: "assets/logo/app_logo_light.png"
-  image_path_ios: "assets/logo/app_logo_light.png"
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/logo/logo_light.png" # Default logo
+
+  # iOS 18+ Dark Mode Icon
+  image_path_ios_dark_tint: "assets/logo/logo_dark.png"
+
+  # Android Adaptive Icon (Light Mode)
+  adaptive_icon_background: "#FFFFFF" # Background color (white)
+  adaptive_icon_foreground: "assets/logo/logo_light.png"
+
+  # Android 13+ Themed/Monochrome Icon (Dark Mode ke liye)
+  monochrome_icon: "assets/logo/logo_dark.png"

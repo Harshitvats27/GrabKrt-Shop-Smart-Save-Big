@@ -1,15 +1,13 @@
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:e_commerce_application/utils/helpers/helper_function.dart';
 import '../../../utils/constants/enums.dart';
 import '../../personalisation/models/address_model.dart';
 import 'cart_item_model.dart';
 
-class OrderModel{
+class OrderModel {
   final String id;
   final String userId;
-  final OrderStatus status;
+  final String status;
   final double totalAmount;
   final DateTime orderDate;
   final String paymentMethod;
@@ -33,78 +31,53 @@ class OrderModel{
 
   String get formattedOrderDate => UHelperfunctions.getFormattedDate(orderDate);
 
-  String get formattedDeliveryDate => UHelperfunctions.getFormattedDate(deliveryDate!);
+  String get formattedDeliveryDate => deliveryDate != null ? UHelperfunctions.getFormattedDate(deliveryDate!) : 'N/A';
 
-  String get orderStatusText => status == OrderStatus.delivered
-      ? 'Delivered'
-      : status == OrderStatus.pending ? 'Pending'
-      : status == OrderStatus.processing ? 'Processing'
-      : status == OrderStatus.shipped
-      ? 'Shipment on the way'
-      : 'Processing';
+  // String get orderStatusText => status == OrderStatus.delivered
+  //     ? 'Delivered'
+  //     : status == OrderStatus.pending ? 'Pending'
+  //     : status == OrderStatus.processing ? 'Processing'
+  //     : status == OrderStatus.shipped ? 'Shipment on the way'
+  //     : 'Processing';
 
-  Map<String, dynamic> toJson(){
+  Map<String, dynamic> toJson() {
     return {
       'id': id,
       'userId': userId,
-      'status' : status.toString().split('.').last, // Sirf naam save karega, jaise 'pending'// Enum to string
+      'status': status,
       'totalAmount': totalAmount,
-      'orderDate' : orderDate,
+      'orderDate': orderDate,
       'paymentMethod': paymentMethod,
-      'address': address?.toJson(), // convert address model to map
+      'address': address?.toJson(),
       'deliveryDate': deliveryDate,
-      'items': items.map((item) => item.toJson()).toList(), // convert CartItemModel to map
+      'items': items.map((item) => item.toJson()).toList(),
       'deliveryOtp': deliveryOtp,
     };
   }
 
-  factory OrderModel.fromSnapshot(DocumentSnapshot snapshot){
-    final data = snapshot.data() as Map<String, dynamic>?;
-
-    // Agar data null aa jaye to crash bachane ke liye (wese hoga nahi)
-    if (data == null) throw Exception("Order data is empty");
-
+  // 1. Map se model banane ke liye
+  factory OrderModel.fromJson(Map<String, dynamic> data) {
     return OrderModel(
-      // 1. Strings ke liye safe fallback ('')
       id: data['id'] ?? '',
       userId: data['userId'] ?? '',
-
-      // 2. Enum fallback (Agar status galat ho to pending maan lega)
-      status: OrderStatus.values.firstWhere(
-            (element) {
-          // Database se aane wala status lowercase mein convert kar lo (e.g., 'Shipped' -> 'shipped')
-          String dbStatus = (data['status'] ?? '').toString().toLowerCase();
-
-          // Enum ka aakhiri hissa nikal lo (e.g., 'OrderStatus.pending' -> 'pending')
-          String enumName = element.toString().split('.').last.toLowerCase();
-
-          return dbStatus.contains(enumName);
-        },
-        orElse: () => OrderStatus.pending,
-      ),
-
-      // 3. Number safety (Firebase kabhi int deta hai kabhi double, to .toDouble() zaroori hai)
+      status: data['status']??'',
       totalAmount: (data['totalAmount'] ?? 0.0).toDouble(),
-
-      // 4. Date safety
       orderDate: data['orderDate'] != null ? (data['orderDate'] as Timestamp).toDate() : DateTime.now(),
-
-      // 🔥 5. Yahan error aa raha tha! (As String hata diya)
       paymentMethod: data['paymentMethod'] ?? 'COD',
-
-      // 6. Address aur items ke liye null checks
       address: data['address'] != null ? AddressModel.fromMap(data['address'] as Map<String, dynamic>) : null,
-
       deliveryDate: (data.containsKey('deliveryDate') && data['deliveryDate'] is Timestamp)
           ? (data['deliveryDate'] as Timestamp).toDate()
           : null,
-
       items: data['items'] != null
           ? (data['items'] as List<dynamic>).map((itemData) => CartItemModel.fromJson(itemData as Map<String, dynamic>)).toList()
           : [],
-
-      // 7. Aapka OTP hack
       deliveryOtp: data['deliveryOtp'] ?? '0000',
     );
+  }
+
+  // 2. Firebase Snapshot se model banane ke liye
+  factory OrderModel.fromSnapshot(DocumentSnapshot snapshot) {
+    final data = snapshot.data() as Map<String, dynamic>;
+    return OrderModel.fromJson({...data, 'id': snapshot.id});
   }
 }

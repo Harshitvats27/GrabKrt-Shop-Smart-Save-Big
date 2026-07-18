@@ -18,7 +18,7 @@ class OrderDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final dark = UHelperfunctions.isDarkTheme(context);
     String payMode = order.paymentMethod ?? 'COD';
-    String currentStatus = order.orderStatusText.toLowerCase();
+    String currentStatus = order.status ?? '';
 
     // Dynamic Status Colors & Icons
     Color statusColor = UColors.primary;
@@ -60,7 +60,7 @@ class OrderDetailsScreen extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              order.orderStatusText.toUpperCase(),
+                              order.status.toUpperCase(),
                               style: Theme.of(context).textTheme.titleLarge!
                                   .apply(
                                 color: statusColor,

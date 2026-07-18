@@ -22,8 +22,8 @@ class UOrderListItems extends StatelessWidget {
     final dark = UHelperfunctions.isDarkTheme(context);
     final controller = Get.put(OrderController());
 
-    return FutureBuilder(
-        future: controller.fetchUserOrders(),
+    return StreamBuilder(
+        stream: controller.getLiveStoreOrdersStream(),
         builder: (context, snapshot) {
           final nothingFound = UAnimationLoader(
             text: 'No Orders Yet',
@@ -45,21 +45,38 @@ class UOrderListItems extends StatelessWidget {
               itemBuilder: (context, index) {
                 OrderModel order = orders[index];
                 String payMode = order.paymentMethod ?? 'COD';
-                String currentStatus = order.orderStatusText.toLowerCase();
+
+                // 🔥 Sabse pehle status ko lowercase mein convert karenge taaki match karne mein galti na ho
+                String currentStatus = order.status.toLowerCase();
 
                 // Dynamic Status Colors & Icons
                 Color statusColor = UColors.primary;
-                IconData statusIcon = Iconsax.box_time;
+                IconData statusIcon = Iconsax.timer;
 
-                if (currentStatus.contains('deliver')) {
+                // 1. ✅ DELIVERED (Green) - Order complete ho gaya
+                if (currentStatus == 'delivered') {
                   statusColor = Colors.green;
                   statusIcon = Iconsax.verify5;
-                } else if (currentStatus.contains('way') || currentStatus.contains('ship') || currentStatus.contains('out')) {
+                }
+                // 2. 🚚 OUT FOR DELIVERY (Orange) - Driver raste mein hai
+                else if (currentStatus == 'out for delivery' || currentStatus == 'picked up') {
                   statusColor = Colors.orange;
                   statusIcon = Iconsax.truck_fast;
-                } else {
+                }
+                // 3. 🛵 DRIVER ASSIGNED (Teal) - Driver ne accept kar liya ya usko mil gaya
+                else if (currentStatus == 'handed over to delivery boy' || currentStatus == 'accepted') {
+                  statusColor = Colors.teal; // Ek premium color assigned driver ke liye
+                  statusIcon = Iconsax.routing_2; // Ya phir Iconsax.user_tick use kar sakta hai
+                }
+                // 4. 📦 PROCESSING AT STORE (Blue) - Vendor ka kaam chal raha hai
+                else if (currentStatus == 'accepted by vendor' || currentStatus == 'packed') {
                   statusColor = Colors.blue;
                   statusIcon = Iconsax.box;
+                }
+                // 5. ⏳ DEFAULT (Grey) - Pending (Jab order bas place hua hai)
+                else {
+                  statusColor = Colors.grey;
+                  statusIcon = Iconsax.timer;
                 }
 
                 return GestureDetector(
@@ -89,7 +106,7 @@ class UOrderListItems extends StatelessWidget {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                        order.orderStatusText.toUpperCase(),
+                                        order.status.toUpperCase(),
                                         style: Theme.of(context).textTheme.titleMedium!.apply(color: statusColor, fontWeightDelta: 2)
                                     ),
                                     Text(order.formattedOrderDate, style: Theme.of(context).textTheme.labelMedium)
