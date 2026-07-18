@@ -43,5 +43,5 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
-# My Secret API Keys (Do not upload)
+# My Secret API Keys (Do not upload)it
 assets/constantsapi/constantsapi.dart
